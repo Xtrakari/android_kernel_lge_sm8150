@@ -387,7 +387,9 @@ static DEVICE_ATTR(disable, S_IWUSR | S_IRUSR, lge_monitor_disable_get,
 static void _poll_monitor(struct lge_monitor_thermal_data *monitor_dd)
 {
 	struct thermal_cooling_device *cdev = NULL;
+#ifdef CONFIG_SCHED_WALT
 	struct sched_cluster *cluster;
+#endif
 	unsigned long state;
 	int ret;
 	union power_supply_propval prop = {0, };
@@ -507,7 +509,7 @@ static void _poll_monitor(struct lge_monitor_thermal_data *monitor_dd)
 		if (cdev->id == 0)
 			break;
 	}
-
+#ifdef CONFIG_SCHED_WALT
 	list_for_each_entry_rcu(cluster, &cluster_head, list) {
 		pr_info("[TM][C] Cluster->id[%d], cur_freq:%u, min_freq:%u, max_freq:%u,"
 				" max_mitigated_freq:%u, capacity:%d\n",
@@ -518,6 +520,7 @@ static void _poll_monitor(struct lge_monitor_thermal_data *monitor_dd)
 				cluster->max_mitigated_freq,
 				cluster->capacity);
 	}
+#endif
 }
 
 static void poll_monitor_work(struct work_struct *work)
