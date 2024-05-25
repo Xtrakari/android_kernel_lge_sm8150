@@ -233,6 +233,10 @@ config CPU_FREQ_GOV_SCHEDUTIL
 config CPU_FREQ_GOV_INTERACTIVE
 	tristate "'interactive' cpufreq policy governor"
 	depends on CPU_FREQ
+
+config CPU_FREQ_GOV_WALT
+	bool "'walt' cpufreq policy governor"
+	depends on CPU_FREQ && SMP
 	select CPU_FREQ_GOV_ATTR_SET
 	select IRQ_WORK
 	help
@@ -247,6 +251,10 @@ config CPU_FREQ_GOV_INTERACTIVE
 	  module will be called cpufreq_interactive.
 
 	  For details, take a look at linux/Documentation/cpu-freq.
+
+	  If in doubt, say N.
+
+	  be called cpufreq_walt.
 
 	  If in doubt, say N.
 
