@@ -675,7 +675,7 @@ menu "FAIR Scheuler tunables"
 
 choice
 	prompt "Utilization's PELT half-Life"
-	default PELT_UTIL_HALFLIFE_32
+	default PELT_UTIL_HALFLIFE_4
 	help
 	  Allows choosing one of the possible values for the PELT half-life to
 	  be used for the update of the utilization of tasks and CPUs.
@@ -683,7 +683,7 @@ choice
 	  build up to 50% utilization. The higher the half-life the longer it
 	  takes for a task to be represented as a big one.
 
-	  If not sure, use the default of 32 ms.
+	  If not sure, use the default of 4 ms.
 
 config PELT_UTIL_HALFLIFE_32
 	bool "32 ms, default for server"
@@ -700,6 +700,13 @@ config PELT_UTIL_HALFLIFE_8
 	help
 	  Use 8ms as PELT half-life value. This will increase the ramp-up and
 	  decay of utlization and load four time as fast as for the default
+	  configuration using 32ms.
+	  
+config PELT_UTIL_HALFLIFE_4
+	bool "4 ms, very very fast"
+	help
+	  Use 4ms as PELT half-life value. This will increase the ramp-up and
+	  decay of utlization and load eight time as fast as for the default
 	  configuration using 32ms.
 
 endchoice
