@@ -12,6 +12,8 @@
 #include <linux/blk-mq.h>
 #include <linux/blk-cgroup.h>
 
+#include <linux/p002_attributes.h>
+
 #include "blk.h"
 #include "blk-mq.h"
 #include "blk-mq-debugfs.h"
@@ -915,6 +917,9 @@ int blk_register_queue(struct gendisk *disk)
 			goto unlock;
 		}
 	}
+
+    p002_init_iosched_switcher(q);
+
 	ret = 0;
 unlock:
 	mutex_unlock(&q->sysfs_lock);

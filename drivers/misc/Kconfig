@@ -596,6 +596,17 @@ config TEST_IRQ_REQUESTER
 	  If in doubt, say N.
 
 source "drivers/misc/c2port/Kconfig"
+
+config P002_ATTRIBUTES
+	bool "P002 Kernel Extensions Framework"
+	default n
+	help
+	  Enable the P002 custom optimization manager.
+	  Currently includes a background app blocker that intercepts
+	  process creation in fork.c to save battery and resources.
+
+	  If unsure, say Y.
+
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
 source "drivers/misc/ti-st/Kconfig"
