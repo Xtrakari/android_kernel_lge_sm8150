@@ -312,23 +312,19 @@ static void waltgov_deferred_update(struct waltgov_policy *wg_policy, u64 time,
 
 #define TARGET_LOAD 80
 static inline unsigned long walt_map_util_freq(unsigned long util,
-					struct waltgov_policy *wg_policy,
-					unsigned long cap, int cpu)
+                    struct waltgov_policy *wg_policy,
+                    unsigned long cap, int cpu)
 {
-	unsigned long fmax = wg_policy->policy->cpuinfo.max_freq;
-	unsigned int shift = wg_policy->tunables->target_load_shift;
+    unsigned long fmax = wg_policy->policy->cpuinfo.max_freq;
+    unsigned int shift = wg_policy->tunables->target_load_shift;
 
-	if (util >= wg_policy->tunables->target_load_thresh &&
-#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 19, 0)
-	    cpu_util_rt(cpu) < (cap >> 2))
-#else
-	    cpu_util_rt(cpu_rq(cpu)) < (cap >> 2))
-#endif
-		return max(
-			(fmax + (fmax >> shift)) * util,
-			(fmax + (fmax >> 2)) * wg_policy->tunables->target_load_thresh
-			)/cap;
-	return (fmax + (fmax >> 2)) * util / cap;
+    if (util >= wg_policy->tunables->target_load_thresh &&
+        cpu_util_rt(cpu_rq(cpu)) < (cap >> 2))
+        return max(
+            (fmax + (fmax >> shift)) * util,
+            (fmax + (fmax >> 2)) * wg_policy->tunables->target_load_thresh
+            )/cap;
+    return (fmax + (fmax >> 2)) * util / cap;
 }
 
 /**
@@ -515,54 +511,31 @@ unsigned long walt_cpu_util(int cpu, unsigned long util_cfs,
 #ifdef CONFIG_SCHED_WALT
 static unsigned long waltgov_get_util(struct waltgov_cpu *wg_cpu)
 {
-	//struct rq *rq = cpu_rq(wg_cpu->cpu);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
-	unsigned long max = arch_scale_cpu_capacity(NULL, wg_cpu->cpu);
-#else
-	unsigned long max = arch_scale_cpu_capacity(wg_cpu->cpu);
-#endif
-	unsigned long util;
+    unsigned long max = arch_scale_cpu_capacity(wg_cpu->cpu);
+    unsigned long util;
 
-	wg_cpu->max = max;
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 0)
-	wg_cpu->bw_dl = cpu_bw_dl(rq);
-#endif
-	util = cpu_util_freq_walt(wg_cpu->cpu, &wg_cpu->walt_load);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
-	return util;
-#else
-	return uclamp_rq_util_with(rq, util, NULL);
-#endif
+    wg_cpu->max = max;
+    util = cpu_util_freq_walt(wg_cpu->cpu, &wg_cpu->walt_load);
+    
+    return util;
 }
 #else
 static unsigned long waltgov_get_util(struct waltgov_cpu *wg_cpu)
 {
-	struct rq *rq = cpu_rq(wg_cpu->cpu);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
-	unsigned long max = arch_scale_cpu_capacity(NULL, wg_cpu->cpu);
-#else
-	unsigned long max = arch_scale_cpu_capacity(wg_cpu->cpu);
-#endif
-	unsigned long util;
+    struct rq *rq = cpu_rq(wg_cpu->cpu);
+    unsigned long max = arch_scale_cpu_capacity(wg_cpu->cpu);
+    unsigned long util;
 
-	wg_cpu->max = max;
-	wg_cpu->bw_dl = cpu_bw_dl(rq);
+    wg_cpu->max = max;
+    wg_cpu->bw_dl = cpu_bw_dl(rq);
+
 #ifdef CONFIG_SCHED_TUNE
-	util = cpu_util_cfs(rq);
+    util = cpu_util_cfs(rq);
 #else
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-	util = cpu_util_freq(wg_cpu->cpu, NULL) - cpu_util_rt(rq);
-#else
-	util = cpu_util_freq_walt(wg_cpu->cpu, &wg_cpu->walt_load);
-#endif
+    util = cpu_util_freq(wg_cpu->cpu, NULL) - cpu_util_rt(rq);
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
-	return walt_cpu_util(wg_cpu->cpu, util, max,
-				  FREQUENCY_UTIL, NULL);
-#else
-	return uclamp_rq_util_with(rq, util, NULL);
-#endif
+    return __cpu_util(wg_cpu->cpu);
 }
 #endif
 
