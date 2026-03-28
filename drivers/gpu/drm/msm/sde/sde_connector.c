@@ -24,6 +24,10 @@
 #include "sde_crtc.h"
 #include "sde_rm.h"
 
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
+#endif
+
 #if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
 #include "lge/brightness/lge_brightness.h"
 #include "lge/ambient/lge_backlight_ex.h"
@@ -707,6 +711,9 @@ void sde_connector_helper_bridge_disable(struct drm_connector *connector)
 	sde_connector_schedule_status_work(connector, false);
 
 	if (c_conn->bl_device) {
+#ifdef CONFIG_POWERSUSPEND
+	set_power_suspend_state_panel_hook(POWER_SUSPEND_ACTIVE);
+#endif
 		c_conn->bl_device->props.power = FB_BLANK_POWERDOWN;
 		c_conn->bl_device->props.state |= BL_CORE_FBBLANK;
 		backlight_update_status(c_conn->bl_device);
@@ -739,6 +746,9 @@ void sde_connector_helper_bridge_enable(struct drm_connector *connector)
 	c_conn->allow_bl_update = true;
 
 	if (c_conn->bl_device) {
+#ifdef CONFIG_POWERSUSPEND
+	set_power_suspend_state_panel_hook(POWER_SUSPEND_INACTIVE);
+#endif
 		c_conn->bl_device->props.power = FB_BLANK_UNBLANK;
 		c_conn->bl_device->props.state &= ~BL_CORE_FBBLANK;
 		backlight_update_status(c_conn->bl_device);
