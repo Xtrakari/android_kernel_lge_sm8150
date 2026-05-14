@@ -40,6 +40,8 @@
 #include "tune.h"
 #include "walt.h"
 
+#include <linux/prefer_silver.h>
+
 #ifdef CONFIG_SMP
 static inline bool task_fits_max(struct task_struct *p, int cpu);
 #endif /* CONFIG_SMP */
@@ -8386,14 +8388,29 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 
 	if (energy_aware()) {
 		rcu_read_lock();
-		new_cpu = find_energy_efficient_cpu(energy_sd, p,
-						cpu, prev_cpu, sync,
-						sibling_count_hint);
-		rcu_read_unlock();
-		return new_cpu;
+		/* 1. Silver Fast-Path (Your Optimization) */
+		if (sysctl_prefer_silver && prefer_silver_check_task_util(p)) {
+			int best = find_best_silver_cpu(p);
+			if (best >= 0) {
+				rcu_read_unlock();
+				return best; 
+			}
+		}
+		
+		/* 2. Standard EAS Search */
+		energy_sd = rcu_dereference(per_cpu(sd_ea, prev_cpu));
+		if (energy_sd) {		
+			new_cpu = find_energy_efficient_cpu(energy_sd, p,
+							cpu, prev_cpu, sync,
+							sibling_count_hint);
+			rcu_read_unlock();
+			return new_cpu; // Returns the CPU found by EAS
+		}
+		rcu_read_unlock(); 
+		/* If we reach here, EAS failed to find a domain, proceed to legacy paths */
 	}
 
-	rcu_read_lock();
+	/* --- Legacy / Non-EAS Balancing Path --- */
 
 	if (sd_flag & SD_BALANCE_WAKE) {
 		record_wakee(p);
