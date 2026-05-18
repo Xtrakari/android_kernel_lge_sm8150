@@ -1204,13 +1204,6 @@ config DEFAULT_USE_ENERGY_AWARE
 	  via sysctl.
 
 	  Say N if unsure.
-	  
-config OPLUS_PREFER_SILVER
-	default y
-	bool "a task placement decision for non-ui task"
-	depends on SCHED_WALT
-	help
-	  task placement decision feature for non-ui task
 
 config SYSFS_DEPRECATED
 	bool "Enable deprecated sysfs features to support old userspace tools"
